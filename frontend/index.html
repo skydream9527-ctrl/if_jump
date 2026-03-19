@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>吃了么 - 跳一跳美食游戏</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 开始页面 -->
+    <div id="start-screen" class="screen active">
+      <div class="logo">
+        <h1>🍜 吃了么</h1>
+        <p class="subtitle">跳一跳，尝遍天下美食</p>
+      </div>
+      <div class="character-preview">
+        <div class="character">阿饱</div>
+        <div class="speech-bubble">我要吃遍所有美食！</div>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-start" class="btn btn-primary">开始游戏</button>
+        <button id="btn-login" class="btn btn-secondary">登录</button>
+        <button id="btn-register" class="btn btn-secondary">注册</button>
+        <button id="btn-leaderboard" class="btn btn-outline">排行榜</button>
+      </div>
+    </div>
+
+    <!-- 关卡选择页面 -->
+    <div id="level-select-screen" class="screen">
+      <h2>选择关卡</h2>
+      <div class="progress-display">
+        <div class="progress-title">游戏进度</div>
+        <div class="progress-bar-container">
+          <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <div class="progress-info">
+          <span id="completed-levels">0</span> / <span id="total-levels">10</span> 个关卡已完成
+        </div>
+      </div>
+      <div class="levels-grid" id="levels-grid"></div>
+      <div class="level-info" id="level-info">
+        <p>选择关卡开始游戏</p>
+      </div>
+      <button id="btn-back-levels" class="btn btn-secondary">返回首页</button>
+    </div>
+
+    <!-- 游戏页面 -->
+    <div id="game-screen" class="screen">
+      <div class="game-header">
+        <div class="game-info">
+          <span>关卡: <span id="current-level">第一章</span></span>
+          <span>分数: <span id="current-score">0</span></span>
+        </div>
+        <div class="game-controls">
+          <button id="btn-pause" class="btn btn-small">暂停</button>
+          <button id="btn-quit" class="btn btn-small">退出</button>
+        </div>
+      </div>
+      <canvas id="game-canvas"></canvas>
+      <div class="power-bar-container">
+        <div class="power-bar" id="power-bar"></div>
+      </div>
+    </div>
+
+    <!-- 游戏暂停弹窗 -->
+    <div id="pause-modal" class="modal">
+      <div class="modal-content">
+        <h2>游戏暂停</h2>
+        <div class="pause-buttons">
+          <button id="btn-resume" class="btn btn-primary">继续</button>
+          <button id="btn-quit-pause" class="btn btn-secondary">退出</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏失败页面 -->
+    <div id="game-over-screen" class="screen">
+      <h2>游戏结束</h2>
+      <p class="game-over-message">很遗憾，你未能通过本关卡</p>
+      <div class="game-over-info">
+        <div class="info-item">
+          <span class="info-label">本关得分</span>
+          <span class="info-value" id="game-over-score">0</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">目标分数</span>
+          <span class="info-value" id="game-over-target">0</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">关卡</span>
+          <span class="info-value" id="game-over-level">0</span>
+        </div>
+      </div>
+      <div class="game-over-buttons">
+        <button id="btn-retry-game-over" class="btn btn-primary">重新开始</button>
+        <button id="btn-next-level-game-over" class="btn btn-secondary">下一关</button>
+        <button id="btn-back-to-levels-game-over" class="btn btn-secondary">返回关卡选择</button>
+      </div>
+    </div>
+
+    <!-- 关卡完成页面 -->
+    <div id="level-complete-screen" class="screen">
+      <h2>🎉 关卡完成！</h2>
+      <div class="complete-info">
+        <p>恭喜通关！</p>
+        <p class="score-display">得分: <span id="complete-score">0</span></p>
+      </div>
+      <div class="complete-buttons">
+        <button id="btn-next-level" class="btn btn-primary">下一关</button>
+        <button id="btn-retry-level" class="btn btn-secondary">重新开始</button>
+        <button id="btn-back-to-levels" class="btn btn-secondary">返回关卡选择</button>
+      </div>
+    </div>
+
+    <!-- 排行榜页面 -->
+    <div id="leaderboard-screen" class="screen">
+      <h2>排行榜</h2>
+      <div id="leaderboard-list"></div>
+      <button id="btn-back-leaderboard" class="btn btn-secondary">返回</button>
+    </div>
+
+    <!-- 登录/注册弹窗 -->
+    <div id="auth-modal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2 id="auth-title">登录</h2>
+        <div id="auth-error" class="error-message"></div>
+        <form id="auth-form">
+          <input type="text" id="username" placeholder="用户名" required>
+          <input type="password" id="password" placeholder="密码" required>
+          <button type="submit" class="btn btn-primary">提交</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 引入模块化JS文件 -->
+  <script src="js/config/GameConfig.js"></script>
+  <script src="js/core/GameState.js"></script>
+  <script src="js/core/Scene.js"></script>
+  <script src="js/core/SceneManager.js"></script>
+  <script src="js/core/GameEngine.js"></script>
+  <script src="js/services/APIService.js"></script>
+  <script src="js/entities/Player.js"></script>
+  <script src="js/entities/Platform.js"></script>
+  <script src="js/entities/Obstacle.js"></script>
+  <script src="js/scenes/StartScene.js"></script>
+  <script src="js/scenes/LevelSelectScene.js"></script>
+  <script src="js/scenes/GameScene.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
