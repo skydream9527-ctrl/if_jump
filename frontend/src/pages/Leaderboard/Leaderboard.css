@@ -1,0 +1,139 @@
+.leaderboard-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f0c2e 0%, #1a1040 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 40px;
+}
+
+.lb-bg-glow {
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.lb-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 20px 0;
+}
+
+.back-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: rgba(255,255,255,0.2); }
+
+.lb-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.lb-icon { font-size: 36px; }
+
+.lb-title {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.lb-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+}
+
+.lb-loading, .lb-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  min-height: 60vh;
+  color: rgba(255,255,255,0.6);
+}
+
+.lb-empty-icon { font-size: 64px; }
+
+.lb-list {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.lb-entry {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 14px 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.lb-entry.gold {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.18), rgba(255, 159, 67, 0.1));
+  border-color: rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15);
+}
+
+.lb-entry.silver {
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.15), rgba(128,128,128,0.08));
+  border-color: rgba(192, 192, 192, 0.35);
+}
+
+.lb-entry.bronze {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.15), rgba(160,82,45,0.08));
+  border-color: rgba(205, 127, 50, 0.35);
+}
+
+.lb-rank {
+  width: 42px;
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+}
+
+.lb-player-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.lb-player-name {
+  font-size: 16px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lb-level-tag {
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+.lb-score {
+  font-size: 20px;
+  font-weight: 800;
+  color: #FFD700;
+  white-space: nowrap;
+}

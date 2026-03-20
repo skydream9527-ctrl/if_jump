@@ -1,0 +1,144 @@
+.achievements-page {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f0c2e 0%, #1a1040 100%);
+  color: white;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: 40px;
+}
+
+.ach-bg-glow {
+  position: absolute;
+  top: -200px; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(100, 80, 220, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.ach-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 20px 0;
+}
+
+.back-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: rgba(255,255,255,0.2); }
+
+.ach-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ach-icon { font-size: 36px; }
+
+.ach-title {
+  font-size: 26px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.ach-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+}
+
+.ach-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
+
+.ach-list {
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ach-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.2s;
+}
+
+.ach-card:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+
+.ach-icon-wrap {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, rgba(108,92,231,0.3), rgba(166,155,254,0.2));
+  border: 1px solid rgba(166,155,254,0.25);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.ach-emoji { font-size: 28px; }
+
+.ach-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ach-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.ach-desc {
+  font-size: 13px;
+  color: rgba(255,255,255,0.6);
+  margin-bottom: 4px;
+}
+
+.ach-condition {
+  display: inline-block;
+  font-size: 11px;
+  background: rgba(108,92,231,0.2);
+  color: #A29BFE;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(108,92,231,0.3);
+}
+
+.ach-reward {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.ach-coin { font-size: 20px; }
+
+.ach-coin-val {
+  font-size: 14px;
+  font-weight: 700;
+  color: #FFD700;
+}

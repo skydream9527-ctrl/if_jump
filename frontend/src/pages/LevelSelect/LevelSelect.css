@@ -1,0 +1,219 @@
+.level-select {
+  min-height: 100vh;
+  background: linear-gradient(160deg, #0f0c2e 0%, #1a1040 60%, #0d2045 100%);
+  color: white;
+  padding-bottom: 40px;
+}
+
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.ls-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 28px 24px 20px;
+  background: rgba(0,0,0,0.2);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.back-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: white;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: rgba(255,255,255,0.18); }
+
+.ls-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ls-icon { font-size: 36px; }
+
+.ls-chapter-name {
+  font-size: 20px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--ch-color, #FF9F43), #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ls-subtitle {
+  font-size: 13px;
+  color: rgba(255,255,255,0.45);
+  margin-top: 2px;
+}
+
+.ls-levels {
+  padding: 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.level-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.level-card.animate-fadeInUp { animation: fadeInUp 0.4s ease-out forwards; }
+
+.level-card:hover {
+  transform: translateX(4px);
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.level-card.boss {
+  background: linear-gradient(135deg, rgba(255,215,0,0.12), rgba(255,159,67,0.08));
+  border-color: rgba(255,215,0,0.3);
+}
+
+.level-card.boss::before {
+  content: 'BOSS';
+  position: absolute;
+  top: 10px;
+  right: 44px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--color-gold);
+  letter-spacing: 1.5px;
+}
+
+.level-num {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--ch-color, var(--color-primary));
+  flex-shrink: 0;
+}
+
+.level-info { flex: 1; min-width: 0; }
+
+.level-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.level-desc {
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 8px;
+}
+
+.level-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.diff-bars {
+  display: flex;
+  gap: 3px;
+}
+
+.diff-bar {
+  width: 14px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.2s;
+}
+
+.diff-bar.active {
+  background: var(--ch-color, var(--color-primary));
+}
+
+.target-score {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+}
+
+.level-stars-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.level-stars {
+  display: flex;
+  gap: 1px;
+}
+
+.level-star {
+  font-size: 14px;
+}
+
+.level-star.earned {
+  filter: none;
+}
+
+.level-star.empty {
+  filter: grayscale(1) brightness(0.5);
+  font-style: normal;
+  font-size: 14px;
+  color: rgba(255,255,255,0.3);
+}
+
+.level-best {
+  font-size: 10px;
+  color: rgba(255, 215, 0, 0.7);
+  white-space: nowrap;
+}
+
+.level-card.completed {
+  border-color: rgba(var(--ch-color, 255,159,67), 0.3);
+}
+
+.level-arrow {
+  font-size: 22px;
+  color: rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}

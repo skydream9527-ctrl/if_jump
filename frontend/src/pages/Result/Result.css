@@ -1,0 +1,205 @@
+.result-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  color: white;
+}
+
+.result-page.success {
+  background: linear-gradient(160deg, #0f0c2e 0%, #1a3a20 60%, #0d2045 100%);
+}
+
+.result-page.failed {
+  background: linear-gradient(160deg, #0f0c2e 0%, #3a1020 60%, #0d2045 100%);
+}
+
+.result-bg-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(255,215,0,0.1), transparent 60%);
+  pointer-events: none;
+}
+
+.result-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 24px;
+}
+
+.result-header { text-align: center; }
+.result-emoji { font-size: 60px; margin-bottom: 8px; }
+.result-title { font-size: 30px; font-weight: 800; }
+.success-text { background: linear-gradient(135deg, #FFD700, #FF9F43); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.fail-text { color: #FF6B6B; }
+
+/* Stars */
+.result-stars {
+  display: flex;
+  gap: 12px;
+  height: 60px;
+  align-items: center;
+}
+
+.result-star {
+  font-size: 40px;
+  filter: grayscale(1) brightness(0.4);
+  transition: filter 0.3s;
+}
+
+.result-stars.visible .result-star.active {
+  filter: none;
+  animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Stats */
+.result-stats {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.stat-row:last-child { border-bottom: none; }
+
+.stat-label { font-size: 14px; color: rgba(255,255,255,0.55); }
+.stat-val { font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.9); }
+
+/* Rewards */
+.result-rewards {
+  width: 100%;
+  background: rgba(255,215,0,0.08);
+  border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 20px;
+  padding: 16px 20px;
+}
+
+.reward-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-gold);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.reward-items {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+}
+
+.reward-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 10px 16px;
+  min-width: 70px;
+}
+
+.ri-icon { font-size: 24px; }
+.ri-val { font-size: 14px; font-weight: 700; color: rgba(255,255,255,0.85); }
+
+/* Actions */
+.result-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.result-actions .btn { width: 100%; justify-content: center; }
+
+/* Revive */
+.revive-section {
+  width: 100%;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  border-radius: 20px;
+  padding: 16px 20px;
+}
+
+.revive-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.revive-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.revive-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.revive-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.coins-revive {
+  background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,159,67,0.15));
+  border: 1px solid rgba(255,215,0,0.3) !important;
+  color: #FFD700;
+}
+
+.coins-revive:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,159,67,0.25));
+}
+
+.shield-revive {
+  background: linear-gradient(135deg, rgba(84,160,255,0.2), rgba(29,209,161,0.15));
+  border: 1px solid rgba(84,160,255,0.3) !important;
+  color: #54A0FF;
+}
+
+.shield-revive:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(84,160,255,0.3), rgba(29,209,161,0.25));
+}
+
+.revive-coin-count {
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.no-revive {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.35);
+  padding: 8px 0;
+}
+
