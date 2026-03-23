@@ -1,5 +1,39 @@
 import axios from 'axios'
 
+export interface PlatformData {
+  id: number
+  x: number
+  y: number
+  width: number
+  height: number
+  theme: string
+  type: string
+  has_obstacle?: boolean
+  obstacle_type?: string
+  wait_timer?: number
+  has_steam?: boolean
+  size_type?: string
+  is_wobble?: boolean
+  branch?: string
+  is_slippery?: boolean
+  move_speed?: number
+  move_range?: number
+  is_boss?: boolean
+}
+
+export interface LevelData {
+  id: string
+  name: string
+  description: string
+  difficulty: number
+  is_boss: boolean
+  target_score: number
+  platform_count: number
+  platforms_config: PlatformData[]
+  mechanics_config: any
+  rewards_config: any
+}
+
 const api = axios.create({
   baseURL: 'http://localhost:8000',
   timeout: 10000,
@@ -12,7 +46,7 @@ export const chaptersApi = {
 }
 
 export const levelsApi = {
-  getById: (levelId: string) => api.get(`/api/levels/${levelId}`).then(r => r.data),
+  getById: (levelId: string) => api.get(`/api/levels/${levelId}`).then(r => r.data as LevelData),
 }
 
 export const playerApi = {

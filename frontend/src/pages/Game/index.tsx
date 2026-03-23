@@ -99,15 +99,19 @@ export default function GamePage() {
 
     levelsApi.getById(levelId).then(async (data) => {
       setLevelInfo(data)
-      const count = data.platform_count || 12
-      const platforms = generatePlatforms(count, chapterId)
+      let platforms: Platform[] = []
+      if (data.platforms_config && data.platforms_config.length > 0) {
+        platforms = data.platforms_config.map((p: any) => new Platform(p))
+      } else {
+        const count = data.platform_count || 12
+        platforms = generatePlatforms(count, chapterId)
+      }
       const p = new Player(platforms[0].x, platforms[0].top - 14)
 
       stateRef.current.platforms = platforms
       stateRef.current.player = p
       stateRef.current.cameraX = 0
       stateRef.current.currentPlatform = 0
-
       const { data: sessionData } = await gameApi.start(levelId)
         .catch(() => ({ data: { session_id: 0 } })) as any
       const startScore = reviveState?.prevScore ?? 0
@@ -140,31 +144,27 @@ export default function GamePage() {
     resize()
     window.addEventListener('resize', resize)
 
-    const handleDown = (e: MouseEvent | TouchEvent) => {
-      e.preventDefault()
-      if (stateRef.current.done) return
+    const handleJump = (e?: Event) => {
+      if (e) e.preventDefault()
+      if (stateRef.current.done || paused) return
       const s = stateRef.current
       if (s.player?.state === 'idle') {
-        s.player.startCharge()
-        s.charging = true
+        const nextP = s.platforms[s.currentPlatform + 1]
+        const targetX = nextP ? nextP.x : s.player.x + 200
+        s.player.jump(targetX)
       }
     }
 
-    const handleUp = (e: MouseEvent | TouchEvent) => {
-      e.preventDefault()
-      const s = stateRef.current
-      if (!s.charging || !s.player || s.player.state !== 'charging') return
-      s.charging = false
-
-      const nextP = s.platforms[s.currentPlatform + 1]
-      const targetX = nextP ? nextP.x : s.player.x + 200
-      s.player.releaseJump(targetX)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        handleJump(e)
+      }
     }
 
-    canvas.addEventListener('mousedown', handleDown, { passive: false })
-    canvas.addEventListener('mouseup', handleUp, { passive: false })
-    canvas.addEventListener('touchstart', handleDown, { passive: false })
-    canvas.addEventListener('touchend', handleUp, { passive: false })
+    // Support both Spacebar and Tap for convenience
+    window.addEventListener('keydown', handleKeyDown)
+    canvas.addEventListener('touchstart', handleJump as any, { passive: false })
+    canvas.addEventListener('mousedown', handleJump as any, { passive: false })
 
     const loop = (ts: number) => {
       const dt = Math.min((ts - stateRef.current.lastTime) / 1000, 0.05)
@@ -182,11 +182,22 @@ export default function GamePage() {
       const s = stateRef.current
       if (!s.player) return
 
-      s.player.updateCharge(dt)
+      // s.player.updateCharge(dt) - Removed charge
       s.player.update(dt, GRAVITY)
       s.platforms.forEach(p => p.update(dt))
       s.particles.update(dt)
       s.floatTexts.update(dt)
+      
+      // Handle waiting mechanism
+      const currentP = s.platforms[s.currentPlatform]
+      if (currentP && currentP.waitTimer > 0 && s.player.state === 'idle') {
+        currentP.waitElapsed += dt
+        if (currentP.waitElapsed > currentP.waitTimer + 2 && !currentP.waitFailed) {
+          currentP.waitFailed = true
+          s.floatTexts.show(currentP.x, currentP.y - 40, "太慢啦！", "#FF6B6B")
+          gameStore.addScore(-5)
+        }
+      }
 
       // Camera follows player
       const targetCamX = s.player.x - canvas.width * 0.3
@@ -203,6 +214,21 @@ export default function GamePage() {
           if (s.player.vy > 0 &&
               px >= plat.left && px <= plat.right &&
               py >= plat.top && py <= plat.bottom + 10) {
+              
+            // Check obstacle collision on landing
+            if (plat.hasObstacle && Math.abs(px - plat.obstacleX) < 20) {
+              s.player.bounce()
+              gameStore.addScore(-10)
+              s.floatTexts.show(px, py - 30, "-10", "#FF6B6B")
+              return
+            }
+
+            // Wobble trigger
+            if (plat.isWobble) {
+              const offsetRatio = (px - plat.x) / (plat.width / 2)
+              plat.triggerWobble(offsetRatio)
+            }
+
             s.player.land(plat)
             s.currentPlatform = idx
 
@@ -230,6 +256,11 @@ export default function GamePage() {
         }
 
         if (np) checkLand(np, s.currentPlatform + 1)
+        
+        // Check branching (for level 1-7)
+        const branchP = s.platforms.find(p => p.id > s.currentPlatform + 1 && p.id <= s.currentPlatform + 3 && p.theme !== np?.theme)
+        if (branchP && s.player.x > branchP.left - 50) checkLand(branchP, s.platforms.indexOf(branchP))
+        
         // Also check current (re-land)
         if (cp && s.currentPlatform === 0 && s.player.y + 14 > cp.bottom + 60) {
           // fell off start
@@ -279,35 +310,12 @@ export default function GamePage() {
       ctx.setLineDash([])
 
       // Platforms
-      s.platforms.forEach(p => p.draw(ctx))
+      s.platforms.forEach((p, idx) => p.draw(ctx, idx === s.currentPlatform))
 
       // Particles
       s.particles.draw(ctx)
 
-      // Charge trajectory preview
-      if (s.player?.state === 'charging' && s.player.chargeLevel > 0.05) {
-        const np = s.platforms[s.currentPlatform + 1]
-        if (np) {
-          const charge = Math.max(0.2, s.player.chargeLevel)
-          const vx = charge * 280 * (np.x > s.player.x ? 1 : -1)
-          const vy = -charge * 420
-          ctx.strokeStyle = `rgba(255,215,0,${charge * 0.5})`
-          ctx.lineWidth = 2
-          ctx.setLineDash([4, 6])
-          ctx.beginPath()
-          let px = s.player.x, py = s.player.y
-          let pvx = vx, pvy = vy
-          for (let k = 0; k < 20; k++) {
-            const dt2 = 0.04
-            pvx *= 0.99; pvy += GRAVITY * dt2
-            px += pvx * dt2; py += pvy * dt2
-            if (k === 0) ctx.moveTo(px, py)
-            else ctx.lineTo(px, py)
-          }
-          ctx.stroke()
-          ctx.setLineDash([])
-        }
-      }
+      /* Charge bar and trajectory preview removed */
 
       // Player
       s.player?.draw(ctx, s.t)
@@ -317,41 +325,15 @@ export default function GamePage() {
 
       ctx.restore()
 
-      // Charge bar (screen space)
-      if (s.player?.state === 'charging') {
-        const barW = w * 0.5
-        const barH = 12
-        const barX = (w - barW) / 2
-        const barY = h - 80
-        ctx.fillStyle = 'rgba(0,0,0,0.5)'
-        ctx.beginPath()
-        ctx.roundRect(barX, barY, barW, barH, 6)
-        ctx.fill()
-
-        const prog = s.player.chargeLevel
-        const g = ctx.createLinearGradient(barX, 0, barX + barW, 0)
-        g.addColorStop(0, '#1DD1A1')
-        g.addColorStop(0.5, '#FFD700')
-        g.addColorStop(1, '#FF6B6B')
-        ctx.fillStyle = g
-        ctx.beginPath()
-        ctx.roundRect(barX, barY, barW * prog, barH, 6)
-        ctx.fill()
-
-        ctx.fillStyle = 'rgba(255,255,255,0.6)'
-        ctx.font = '11px Noto Sans SC, sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText('按住蓄力  松开跳跃', w / 2, barY + barH + 16)
-      }
+      /* Screen space charge bar removed */
     }
 
     animId = requestAnimationFrame(loop)
     return () => {
       window.removeEventListener('resize', resize)
-      canvas.removeEventListener('mousedown', handleDown)
-      canvas.removeEventListener('mouseup', handleUp)
-      canvas.removeEventListener('touchstart', handleDown)
-      canvas.removeEventListener('touchend', handleUp)
+      window.removeEventListener('keydown', handleKeyDown)
+      canvas.removeEventListener('touchstart', handleJump as any)
+      canvas.removeEventListener('mousedown', handleJump as any)
       cancelAnimationFrame(animId)
     }
   }, [ready, paused, handleEnd])

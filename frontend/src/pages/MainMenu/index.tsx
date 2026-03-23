@@ -93,7 +93,7 @@ export default function MainMenu() {
       <section className="mm-chapters">
         <h3 className="section-title">所有章节</h3>
         <div className="chapters-grid">
-          {chapters.map((ch, idx) => {
+          {chapters.map((ch, _idx) => {
             const unlocked = isUnlocked(ch)
             return (
               <div

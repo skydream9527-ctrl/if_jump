@@ -1,17 +1,14 @@
 // ===== Platform Entity =====
-export interface PlatformConfig {
-  id: number
-  x: number
-  y: number
-  width: number
-  height: number
-  type?: string
-  theme?: string
-}
+import type { PlatformData } from '../api/client'
+
+export interface PlatformConfig extends PlatformData {}
 
 const PLATFORM_COLORS: Record<string, string[]> = {
   default: ['#FF9F43', '#E67E22'],
   ch1: ['#FFF9E6', '#F7DC6F'],
+  ch1_salt: ['#8D6E63', '#5D4037'],
+  ch1_sweet: ['#FFB74D', '#F57C00'],
+  ch1_boss: ['#FFD700', '#F39C12'],
   ch2: ['#74B9FF', '#0984E3'],
   ch3: ['#FD79A8', '#E84393'],
   ch4: ['#E17055', '#C0392B'],
@@ -24,9 +21,18 @@ const PLATFORM_COLORS: Record<string, string[]> = {
 }
 
 export class Platform {
-  x: number; y: number; width: number; height: number
-  id: number; type: string; theme: string
+  id: number; x: number; y: number; width: number; height: number
+  type: string; theme: string
   originalX: number; moveDir = 1; moveOffset = 0
+  moveSpeed: number; moveRange: number
+
+  // Mechanics
+  hasObstacle: boolean; obstacleType: string; obstacleX: number; obstacleDir = 1
+  waitTimer: number; waitElapsed = 0; waitFailed = false
+  hasSteam: boolean; steamTimer = 0; steamActive = false
+  isWobble: boolean; wobbleVal = 0; wobbleDamping = 0.9
+  isSlippery: boolean
+  isBoss: boolean
 
   constructor(config: PlatformConfig) {
     this.id = config.id
@@ -37,31 +43,137 @@ export class Platform {
     this.type = config.type || 'standard'
     this.theme = config.theme || 'default'
     this.originalX = config.x
+    this.moveSpeed = config.move_speed || 80
+    this.moveRange = config.move_range || 50
+    
+    this.hasObstacle = !!config.has_obstacle
+    this.obstacleType = config.obstacle_type || ''
+    this.obstacleX = this.x
+    
+    this.waitTimer = config.wait_timer || 0
+    this.hasSteam = !!config.has_steam
+    this.isWobble = !!config.is_wobble
+    this.isSlippery = !!config.is_slippery
+    this.isBoss = !!config.is_boss
   }
 
   update(dt: number) {
+    // Platform moving
     if (this.type === 'moving') {
-      this.moveOffset += dt * 80 * this.moveDir
-      if (Math.abs(this.moveOffset) > 50) this.moveDir *= -1
+      this.moveOffset += dt * this.moveSpeed * this.moveDir
+      if (Math.abs(this.moveOffset) > this.moveRange) {
+        this.moveDir *= -1
+      }
       this.x = this.originalX + this.moveOffset
+    }
+    
+    // Obstacle moving
+    if (this.hasObstacle && this.obstacleType === 'youtiao') {
+      this.obstacleX += dt * 50 * this.obstacleDir
+      if (Math.abs(this.obstacleX - this.x) > this.width / 2) {
+        this.obstacleDir *= -1
+      }
+    } else {
+      this.obstacleX = this.x
+    }
+    
+    // Steam cycle (3s on, 2s off)
+    if (this.hasSteam) {
+      this.steamTimer += dt
+      if (this.steamTimer > 5) this.steamTimer -= 5
+      this.steamActive = this.steamTimer < 3
+    }
+    
+    // Wobble decay
+    if (this.isWobble && Math.abs(this.wobbleVal) > 0.01) {
+      this.wobbleVal *= this.wobbleDamping
     }
   }
 
-  draw(ctx: CanvasRenderingContext2D) {
+  triggerWobble(offsetRatio: number) {
+    // offsetRatio is -1 to 1 depending on where player landed
+    this.wobbleVal = offsetRatio * 20
+  }
+
+  draw(ctx: CanvasRenderingContext2D, isCurrent: boolean) {
+    ctx.save()
+    
+    // Wobble translation
+    if (this.isWobble) {
+      ctx.translate(this.x, this.y)
+      ctx.rotate(this.wobbleVal * Math.PI / 180)
+      ctx.translate(-this.x, -this.y)
+    }
+
     const colors = PLATFORM_COLORS[this.theme] || PLATFORM_COLORS.default
     const grad = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height)
     grad.addColorStop(0, colors[0])
     grad.addColorStop(1, colors[1])
     ctx.fillStyle = grad
     ctx.beginPath()
-    ctx.roundRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8)
+    
+    if (this.theme.includes('salt') || this.theme.includes('sweet') || this.isWobble) {
+      // Draw as bowl/round shape
+      ctx.ellipse(this.x, this.y, this.width/2, this.height, 0, 0, Math.PI*2)
+    } else {
+      ctx.roundRect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height, 8)
+    }
     ctx.fill()
+    
     // Center zone indicator
     ctx.fillStyle = 'rgba(255,255,255,0.3)'
     const cw = this.width * 0.25
     ctx.beginPath()
     ctx.roundRect(this.x - cw / 2, this.y - this.height / 2, cw, this.height, 4)
     ctx.fill()
+    
+    // Draw wait timer if current
+    if (this.waitTimer > 0 && isCurrent) {
+      const remaining = Math.max(0, this.waitTimer - this.waitElapsed)
+      ctx.fillStyle = remaining === 0 ? '#1DD1A1' : '#FF6B6B'
+      ctx.font = 'bold 16px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText(Math.ceil(remaining).toString(), this.x, this.y + this.height + 20)
+      if (remaining === 0) {
+        ctx.shadowColor = '#1DD1A1'
+        ctx.shadowBlur = 10
+        ctx.strokeStyle = '#1DD1A1'
+        ctx.lineWidth = 2
+        ctx.strokeRect(this.x - this.width/2, this.y - this.height/2, this.width, this.height)
+      }
+    }
+    
+    // Draw Steam
+    if (this.hasSteam && this.steamActive) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)'
+      for(let i=0; i<5; i++) {
+        ctx.beginPath()
+        ctx.arc(this.x - this.width/2 + (this.width/5)*i + 10, this.y - 30 - Math.random()*20, 15, 0, Math.PI*2)
+        ctx.fill()
+      }
+    }
+
+    // Draw Obstacle
+    if (this.hasObstacle) {
+      if (this.obstacleType === 'youtiao') {
+        ctx.fillStyle = '#F5B041'
+        ctx.fillRect(this.obstacleX - 5, this.y - 40, 10, 30)
+      } else if (this.obstacleType === 'wonton') {
+        ctx.fillStyle = '#FFD54F'
+        ctx.beginPath()
+        ctx.arc(this.obstacleX, this.y - 20, 12, 0, Math.PI*2)
+        ctx.fill()
+      }
+    }
+    
+    // Boss icon
+    if (this.isBoss) {
+      ctx.font = '24px Arial'
+      ctx.textAlign = 'center'
+      ctx.fillText('👑', this.x, this.y - this.height)
+    }
+
+    ctx.restore()
   }
 
   get centerX() { return this.x }
@@ -72,7 +184,7 @@ export class Platform {
   get bottom() { return this.y + this.height / 2 }
 
   containsPoint(px: number, py: number) {
-    return px >= this.left && px <= this.right && py >= this.top && py <= this.bottom
+    return px >= this.left && px <= this.right && py >= this.top && py <= this.bottom + 10
   }
 
   inCenterZone(px: number) {
@@ -89,37 +201,27 @@ export class Player {
   chargeLevel = 0   // 0 → 1
   scaleY = 1; opacity = 1
   chargeTime = 0
+  isSlipping = false
+  slipFriction = 0.98
 
   constructor(x: number, y: number) {
     this.x = x; this.y = y
   }
 
-  startCharge() {
+  jump(targetX: number) {
     if (this.state !== 'idle') return
-    this.state = 'charging'
-    this.chargeTime = 0
-    this.chargeLevel = 0
-  }
-
-  updateCharge(dt: number) {
-    if (this.state !== 'charging') return
-    this.chargeTime += dt
-    this.chargeLevel = Math.min(1, this.chargeTime / 1.5)
-    this.scaleY = 1 - this.chargeLevel * 0.25
-  }
-
-  releaseJump(targetX: number) {
-    if (this.state !== 'charging') return
     this.state = 'jumping'
     this.scaleY = 1
-    const charge = Math.max(0.2, this.chargeLevel)
-    const dist = charge * 3.5 * 100
+    
     const dx = targetX - this.x
-    const ratio = Math.min(dist / Math.abs(dx), 1)
-    this.vx = dx > 0 ? charge * 280 : -charge * 280
-    this.vx *= ratio
-    this.vy = -charge * 420
-    this.chargeLevel = 0
+    // Automatic jump calculation based on distance
+    // Base horizontal velocity
+    let baseVx = 280
+    // Adjust vx based on distance, but cap it to prevent shooting off screen
+    this.vx = dx > 0 ? Math.min(baseVx * (Math.abs(dx) / 150), 400) : Math.max(-baseVx * (Math.abs(dx) / 150), -400)
+    
+    // Fixed vertical jump velocity
+    this.vy = -450
   }
 
   update(dt: number, gravity: number) {
@@ -127,18 +229,37 @@ export class Player {
       this.vy += gravity * dt
       this.x += this.vx * dt
       this.y += this.vy * dt
+    } else if (this.state === 'idle' && this.isSlipping) {
+      this.x += this.vx * dt
+      this.vx *= this.slipFriction
+      if (Math.abs(this.vx) < 5) {
+        this.vx = 0
+        this.isSlipping = false
+      }
     }
   }
 
   land(platform: Platform) {
     this.y = platform.top
-    this.vy = 0; this.vx = 0
+    if (platform.isSlippery) {
+      this.isSlipping = true
+      this.vx *= 0.8 // Retain some horizontal momentum
+    } else {
+      this.vy = 0; this.vx = 0
+      this.isSlipping = false
+    }
     this.state = 'idle'
+  }
+  
+  bounce() {
+    this.vx = -this.vx * 0.5
+    this.vy = -200
+    this.state = 'jumping'
   }
 
   die() { this.state = 'dead' }
 
-  draw(ctx: CanvasRenderingContext2D, t: number) {
+  draw(ctx: CanvasRenderingContext2D, _t: number) {
     ctx.save()
     ctx.translate(this.x, this.y)
     ctx.scale(1, this.scaleY)
@@ -173,19 +294,7 @@ export class Player {
     ctx.arc(0, 2, 5, 0.1 * Math.PI, 0.9 * Math.PI)
     ctx.stroke()
 
-    // Charge glow
-    if (this.state === 'charging' && this.chargeLevel > 0) {
-      const glowColor = this.chargeLevel > 0.7 ? 'rgba(255,100,50,0.5)' :
-                        this.chargeLevel > 0.4 ? 'rgba(255,215,0,0.4)' :
-                        'rgba(255,255,255,0.3)'
-      ctx.beginPath()
-      ctx.arc(0, 0, 16 + this.chargeLevel * 10, 0, Math.PI * 2)
-      const glowGrad = ctx.createRadialGradient(0, 0, 14, 0, 0, 26)
-      glowGrad.addColorStop(0, glowColor)
-      glowGrad.addColorStop(1, 'transparent')
-      ctx.fillStyle = glowGrad
-      ctx.fill()
-    }
+    // Remove charge glow
 
     ctx.restore()
   }
