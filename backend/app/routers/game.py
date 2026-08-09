@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
@@ -29,9 +29,9 @@ def calc_rewards(stars: int, coins_earned: int):
 
 
 @router.post("/start")
-def start_game(req: GameStartRequest, db: Session = Depends(get_db)):
+def start_game(req: GameStartRequest, db: Session = Depends(get_db), x_player_id: int = Header(..., alias="X-Player-Id")):
     session = GameSession(
-        player_id=req.player_id,
+        player_id=x_player_id,
         level_id=req.level_id,
     )
     db.add(session)
@@ -44,7 +44,8 @@ def start_game(req: GameStartRequest, db: Session = Depends(get_db)):
 def end_game(req: GameEndRequest, db: Session = Depends(get_db)):
     session = db.query(GameSession).filter(GameSession.id == req.session_id).first()
     if not session:
-        session = GameSession(id=req.session_id, level_id="1-1")
+        # 忽略客户端传入的 session_id，由服务端生成以防伪造
+        session = GameSession(level_id="1-1")
         db.add(session)
 
     # Determine target score
@@ -135,7 +136,7 @@ def get_leaderboard(level_id: str = None, db: Session = Depends(get_db)):
 
 
 @router.get("/level-stars")
-def get_level_stars(db: Session = Depends(get_db)):
-    """Return dict of {level_id: {stars, best_score}} for player 1."""
-    records = db.query(PlayerLevelStar).filter(PlayerLevelStar.player_id == 1).all()
+def get_level_stars(db: Session = Depends(get_db), x_player_id: int = Header(..., alias="X-Player-Id")):
+    """Return dict of {level_id: {stars, best_score}} for the requesting player."""
+    records = db.query(PlayerLevelStar).filter(PlayerLevelStar.player_id == x_player_id).all()
     return {r.level_id: {"stars": r.stars, "best_score": r.best_score} for r in records}

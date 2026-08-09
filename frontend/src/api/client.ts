@@ -34,9 +34,23 @@ export interface LevelData {
   rewards_config: any
 }
 
+const getPlayerId = (): number => {
+  let id = localStorage.getItem('player_id')
+  if (!id) {
+    id = String(Date.now())
+    localStorage.setItem('player_id', id)
+  }
+  return Number(id)
+}
+
 const api = axios.create({
   baseURL: 'http://localhost:8000',
   timeout: 10000,
+})
+
+api.interceptors.request.use((config) => {
+  config.headers['X-Player-Id'] = String(getPlayerId())
+  return config
 })
 
 export const chaptersApi = {
@@ -57,7 +71,7 @@ export const playerApi = {
 
 export const gameApi = {
   start: (levelId: string) =>
-    api.post('/api/game/start', { level_id: levelId, player_id: 1 }).then(r => r.data),
+    api.post('/api/game/start', { level_id: levelId, player_id: getPlayerId() }).then(r => r.data),
   end: (data: {
     session_id: number
     score: number
